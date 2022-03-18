@@ -29,6 +29,7 @@ import time
 import pigpio
 from python_banyan.gateway_base import GatewayBase
 
+from s3_extend.gateways.MyGatewayBase import MyGatewayBase
 from .sonar import Sonar
 from .stepper import StepperMotor
 
@@ -36,7 +37,7 @@ import zmq
 
 
 # noinspection PyAbstractClass
-class RpiGateway(GatewayBase):
+class RpiGateway(MyGatewayBase):
     """
     This class implements a Banyan gateway for the Raspberry Pi
     GPIO pins. It implements the Common Unified GPIO Message
@@ -109,7 +110,8 @@ class RpiGateway(GatewayBase):
 
         # build a status table for the pins
         for x in self.gpio_pins:
-            entry = {'mode': None, 'duty': None, 'freq': None, 'value': 0}
+            # pull_state: one of ['pull_high', 'pull_low', 'pull_none']
+            entry = {'mode': None, 'duty': None, 'freq': None, 'value': 0, 'pull_state': 'pull_none'}
             self.pins_dictionary[x] = entry
 
     def digital_write(self, topic, payload):
@@ -222,6 +224,27 @@ class RpiGateway(GatewayBase):
             self.pi.wave_tx_stop()
             self.pi.wave_delete(wid)
 
+
+    def set_pwm_frequency(self, topic, payload):
+        """
+        This method sets the pwm value for the selected pin.
+        Call set_mode_pwm before calling this method.
+        :param topic: message topic
+        :param payload: {“command”: “set_pwm_frequency”, "pin": “PIN”,
+                         "tag":”TAG”,
+                          “frequency”: “VALUE in Hz”}
+        """
+        value = payload['frequency']
+        if value < 0:
+            value = 0
+
+        # see https://abyz.me.uk/rpi/pigpio/python.html#set_PWM_frequency
+        # only these allowed? (for sample rate 5:
+        # maybe only allow these??
+        # 8000  4000  2000 1600 1000  800  500  400  320
+        #  250   200   160  100   80   50   40   20   10
+        self.pi.set_PWM_frequency(payload['pin'], value)
+
     def pwm_write(self, topic, payload):
         """
         This method sets the pwm value for the selected pin.
@@ -292,9 +315,36 @@ class RpiGateway(GatewayBase):
 
         self.pi.set_glitch_filter(pin, 20000)
         self.pi.set_mode(pin, pigpio.INPUT)
-        self.pi.set_pull_up_down(pin, pigpio.PUD_DOWN)
+        #self.pi.set_pull_up_down(pin, pigpio.PUD_DOWN) # we added an additional command to control this
 
         self.pi.callback(pin, pigpio.EITHER_EDGE, self.input_callback)
+
+    def set_mode_digital_input_pull_state(self, topic, payload):
+        """
+        This method sets a pin as digital input.
+        :param topic: message topic
+        :param payload: {"command": "digital_read_pull_state", "pin": “PIN”, "pull_state": "pull_high | pull_low | pull_none", "tag":”TAG” }
+        """
+        pin = payload['pin']
+        entry = self.pins_dictionary[pin]
+
+        # TODO set mode input?
+        #entry['mode'] = self.DIGITAL_INPUT_MODE
+
+        #self.pi.set_glitch_filter(pin, 20000)
+        #self.pi.set_mode(pin, pigpio.INPUT)
+
+        if payload['pull_state'] == 'pull_up':
+            entry['pull_state'] = 'pull_none'
+            self.pi.set_pull_up_down(pin, pigpio.PUD_UP)
+
+        elif payload['pull_state'] == 'pull_down':
+            entry['pull_state'] = 'pull_down'
+            self.pi.set_pull_up_down(pin, pigpio.PUD_DOWN)
+
+        else:
+            entry['pull_state'] = 'pull_none'
+            self.pi.set_pull_up_down(pin, pigpio.PUD_OFF)
 
     def set_mode_digital_output(self, topic, payload):
         """
