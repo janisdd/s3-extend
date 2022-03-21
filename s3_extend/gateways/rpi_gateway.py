@@ -120,6 +120,8 @@ class RpiGateway(MyGatewayBase):
         :param topic: message topic
         :param payload: {"command": "digital_write", "pin": “PIN”, "value": “VALUE”}
         """
+        print(f"setting pin {payload['pin']} value to {payload['value']}")
+        
         self.pi.write(payload['pin'], payload['value'])
 
     def disable_digital_reporting(self, topic, payload):
