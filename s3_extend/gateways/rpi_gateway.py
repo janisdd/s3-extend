@@ -238,6 +238,8 @@ class RpiGateway(MyGatewayBase):
         if value < 0:
             value = 0
 
+        print(f"setting pin {payload['pin']} pwa frequency to {value}")
+
         # see https://abyz.me.uk/rpi/pigpio/python.html#set_PWM_frequency
         # only these allowed? (for sample rate 5:
         # maybe only allow these??
@@ -333,6 +335,8 @@ class RpiGateway(MyGatewayBase):
 
         #self.pi.set_glitch_filter(pin, 20000)
         #self.pi.set_mode(pin, pigpio.INPUT)
+
+        print(f"setting pin {pin} to pull state {payload['pull_state']}")
 
         if payload['pull_state'] == 'pull_up':
             entry['pull_state'] = 'pull_none'
