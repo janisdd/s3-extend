@@ -32,9 +32,29 @@ from python_banyan.gateway_base import GatewayBase
 from s3_extend.gateways.MyGatewayBase import MyGatewayBase
 from .sonar import Sonar
 from .stepper import StepperMotor
+import traceback
 
 import zmq
 
+f = open("/home/pi/rpi_gateway_log.txt", "w")
+
+
+def logToFile(message, data=None):
+    print(message, data)
+    # f.write(message + "\n")
+    # if data is not None:
+    #    f.write(str(data))
+
+# see https://www.waveshare.com/wiki/AlphaBot2-Pi --> ws2812.py example
+from rpi_ws281x import Adafruit_NeoPixel, Color
+# LED strip configuration:
+LED_COUNT      = 4      # Number of LED pixels.
+LED_PIN        = 18      # GPIO pin connected to the pixels (must support PWM!).
+LED_FREQ_HZ    = 800000  # LED signal frequency in hertz (usually 800khz)
+LED_DMA        = 5       # DMA channel to use for generating signal (try 5)
+LED_BRIGHTNESS = 255     # Set to 0 for darkest and 255 for brightest
+LED_INVERT     = False   # True to invert the signal (when using NPN transistor level shift)
+LED_CHANNEL    = 0
 
 # noinspection PyAbstractClass
 class RpiGateway(MyGatewayBase):
@@ -57,23 +77,28 @@ class RpiGateway(MyGatewayBase):
                        at the bottom of this file.
         """
 
+        logToFile('test RpiGateway')
         # attempt to instantiate pigpio
-        self.pi = pigpio.pi()
+        try:
+            logToFile('self.pi = pigpio.pi()')
+            self.pi = pigpio.pi()
+        except Exception as e:
+            logToFile("error rpi_gate 0", traceback.format_exc())
 
         # if pigpiod is not running, try to start it
         #
         if not self.pi.connected:
-            print('\nAttempting to start pigpiod...')
+            logToFile('\nAttempting to start pigpiod...')
             run(['sudo', 'pigpiod'])
             time.sleep(.5)
             self.pi = pigpio.pi()
             if not self.pi.connected:
-                print('pigpiod did not start - goodbye.')
+                logToFile('pigpiod did not start - goodbye.')
                 sys.exit()
             else:
-                print('pigpiod successfully started!')
+                logToFile('pigpiod successfully started!')
 
-        print('pigpiod is running version: ', self.pi.get_pigpio_version())
+        logToFile('pigpiod is running version: ', self.pi.get_pigpio_version())
 
         # variables to hold instances of sonar and stepper
         self.sonar = None
@@ -86,6 +111,17 @@ class RpiGateway(MyGatewayBase):
         # i2c handle supplied by pigpio when i2c open is called
         self.i2c_handle = None
 
+        try:
+            self.led_strip = Adafruit_NeoPixel(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS)
+            # Create NeoPixel object with appropriate configuration.
+            # Intialize the library (must be called once before other functions).
+            self.led_strip.begin()
+        except Exception as e:
+            logToFile("error rpi_gate 1", traceback.format_exc())
+            self.pi.stop()
+            self.clean_up()
+            sys.exit(0)
+
         # initialize the parent
         super(RpiGateway, self).__init__(subscriber_list=subscriber_list,
                                          back_plane_ip_address=kwargs['back_plane_ip_address'],
@@ -97,6 +133,11 @@ class RpiGateway(MyGatewayBase):
         # start the banyan receive loop
         try:
             self.receive_loop()
+        except Exception as e:
+            logToFile("error rpi_gate 1", traceback.format_exc())
+            self.pi.stop()
+            self.clean_up()
+            sys.exit(0)
         except KeyboardInterrupt:
             self.pi.stop()
             self.clean_up()
@@ -120,8 +161,8 @@ class RpiGateway(MyGatewayBase):
         :param topic: message topic
         :param payload: {"command": "digital_write", "pin": “PIN”, "value": “VALUE”}
         """
-        print(f"setting pin {payload['pin']} value to {payload['value']}")
-        
+        logToFile(f"setting pin {payload['pin']} value to {payload['value']}")
+
         self.pi.write(payload['pin'], payload['value'])
 
     def disable_digital_reporting(self, topic, payload):
@@ -226,7 +267,6 @@ class RpiGateway(MyGatewayBase):
             self.pi.wave_tx_stop()
             self.pi.wave_delete(wid)
 
-
     def set_pwm_frequency(self, topic, payload):
         """
         This method sets the pwm value for the selected pin.
@@ -240,7 +280,7 @@ class RpiGateway(MyGatewayBase):
         if value < 0:
             value = 0
 
-        print(f"setting pin {payload['pin']} pwa frequency to {value}")
+        logToFile(f"setting pin {payload['pin']} pwa frequency to {value}")
 
         # see https://abyz.me.uk/rpi/pigpio/python.html#set_PWM_frequency
         # only these allowed? (for sample rate 5:
@@ -319,7 +359,7 @@ class RpiGateway(MyGatewayBase):
 
         self.pi.set_glitch_filter(pin, 20000)
         self.pi.set_mode(pin, pigpio.INPUT)
-        #self.pi.set_pull_up_down(pin, pigpio.PUD_DOWN) # we added an additional command to control this
+        # self.pi.set_pull_up_down(pin, pigpio.PUD_DOWN) # we added an additional command to control this
 
         self.pi.callback(pin, pigpio.EITHER_EDGE, self.input_callback)
 
@@ -333,12 +373,12 @@ class RpiGateway(MyGatewayBase):
         entry = self.pins_dictionary[pin]
 
         # TODO set mode input?
-        #entry['mode'] = self.DIGITAL_INPUT_MODE
+        # entry['mode'] = self.DIGITAL_INPUT_MODE
 
-        #self.pi.set_glitch_filter(pin, 20000)
-        #self.pi.set_mode(pin, pigpio.INPUT)
+        # self.pi.set_glitch_filter(pin, 20000)
+        # self.pi.set_mode(pin, pigpio.INPUT)
 
-        print(f"setting pin {pin} to pull state {payload['pull_state']}")
+        logToFile(f"setting pin {pin} to pull state {payload['pull_state']}")
 
         if payload['pull_state'] == 'pull_up':
             entry['pull_state'] = 'pull_none'
@@ -368,6 +408,19 @@ class RpiGateway(MyGatewayBase):
          :param payload: {"command": "set_mode_pwm", "pin": “PIN”, "tag":”TAG” }
          """
         self.pi.set_mode(payload['pin'], pigpio.OUTPUT)
+
+    def set_rgb_led_color(self, topic, payload):
+        """
+        This method sets a GPIO pin capable of PWM for PWM operation.
+        :param topic: message topic
+        :param payload: {"command": "set_led_color", "r":0-255, "g":0-255, "b":0-255 }
+        """
+        _r = payload['r']
+        _g = payload['r']
+        _b = payload['r']
+        self.led_strip.setPixelColor(0, Color(_r, _g, _b))
+        self.led_strip.show()
+        # self.pi.set_mode(payload['pin'], pigpio.OUTPUT)
 
     def set_mode_servo(self, topic, payload):
         """
@@ -476,19 +529,21 @@ def rpi_gateway():
 
     try:
         RpiGateway(args.subscriber_list, **kw_options)
+    except Exception as e:
+        logToFile("error rpi_gate 2", traceback.format_exc())
+        sys.exit()
     except KeyboardInterrupt:
         sys.exit()
 
 
 def signal_handler(sig, frame):
-    print('Exiting Through Signal Handler')
+    logToFile('Exiting Through Signal Handler')
     raise KeyboardInterrupt
 
 
 # listen for SIGINT
 signal.signal(signal.SIGINT, signal_handler)
 signal.signal(signal.SIGTERM, signal_handler)
-
 
 if __name__ == '__main__':
     # replace with name of function you defined above

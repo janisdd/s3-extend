@@ -1,3 +1,12 @@
+
+# How to use
+
+```
+python3 setup.py install
+s3r
+```
+---
+
 # Scratch 3 OneGPIO Extension Servers
 
 ![](./docs/images/extensions.png)

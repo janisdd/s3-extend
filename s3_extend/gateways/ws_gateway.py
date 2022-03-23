@@ -62,6 +62,8 @@ class WsGateway(BanyanBaseAIO):
         :param event_loop:
         """
 
+        print('test WsGatewa22y')
+
         # set up logging if requested
         self.log = log
         self.event_loop = event_loop
@@ -110,6 +112,13 @@ class WsGateway(BanyanBaseAIO):
         while True:
             try:
                 await asyncio.sleep(1)
+            except Exception as e:
+                for task in asyncio.Task.all_tasks():
+                    task.cancel()
+                await self.wsocket.close()
+                self.event_loop.stop()
+                self.event_loop.close()
+                sys.exit(0)
             except KeyboardInterrupt:
                 for task in asyncio.Task.all_tasks():
                     task.cancel()
@@ -134,6 +143,8 @@ class WsGateway(BanyanBaseAIO):
         # wait for a connection
         try:
             data = await websocket.recv()
+        except Exception as e:
+            pass
         except websockets.exceptions.ConnectionClosedOK:
             pass
 
@@ -171,6 +182,11 @@ class WsGateway(BanyanBaseAIO):
             try:
                 data = await websocket.recv()
                 data = json.loads(data)
+            except Exception as e:
+                # remove the entry from active_sockets
+                # using a list comprehension
+                self.active_sockets = [entry for entry in self.active_sockets if websocket not in entry]
+                break
             except (websockets.exceptions.ConnectionClosed, TypeError):
                 # remove the entry from active_sockets
                 # using a list comprehension
@@ -222,6 +238,8 @@ class WsGateway(BanyanBaseAIO):
 def ws_gateway():
     # allow user to bypass the IP address auto-discovery. This is necessary if the component resides on a computer
     # other than the computing running the backplane.
+
+    print("WS START")
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-b", dest="back_plane_ip_address", default="None",
@@ -280,6 +298,13 @@ def ws_gateway():
 
     try:
         WsGateway(subscription_list, **kw_options, event_loop=loop)
+    except Exception as e:
+        for task in asyncio.Task.all_tasks():
+            task.cancel()
+        loop.stop()
+        loop.close()
+        print("error ws")
+        sys.exit(0)
     except KeyboardInterrupt:
         for task in asyncio.Task.all_tasks():
             task.cancel()

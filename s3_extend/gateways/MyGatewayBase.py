@@ -118,6 +118,7 @@ class MyGatewayBase(BanyanBase):
                                    'set_mode_digital_input_pullup': self.set_mode_digital_input_pullup,
                                    'set_mode_digital_input_pull_state': self.set_mode_digital_input_pull_state,
                                    'set_mode_digital_output': self.set_mode_digital_output,
+                                   'set_rgb_led_color': self.set_rgb_led_color,
                                    'set_mode_i2c': self.set_mode_i2c,
                                    'set_mode_pwm': self.set_mode_pwm,
                                    'set_mode_servo': self.set_mode_servo,
@@ -182,7 +183,8 @@ class MyGatewayBase(BanyanBase):
         :param topic: message topic
         :param payload: message payload
         """
-        raise NotImplementedError
+        # raise NotImplementedError
+        raise Exception(f"topic: {str(topic)}, payload: {str(payload)}")
 
     def analog_write(self, topic, payload):
         """
@@ -335,6 +337,9 @@ class MyGatewayBase(BanyanBase):
         :param topic: message topic
         :param payload: message payload
         """
+        raise NotImplementedError
+
+    def set_rgb_led_color(self, topic, payload):
         raise NotImplementedError
 
     def set_mode_i2c(self, topic, payload):
