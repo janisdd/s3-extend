@@ -420,9 +420,9 @@ class RpiGateway(MyGatewayBase):
         """
         _led_index = payload['led']
         _r = payload['r']
-        _g = payload['r']
-        _b = payload['r']
-        
+        _g = payload['g']
+        _b = payload['b']
+
         logToFile(f"setting led {_led_index} to r: {_r}, g: {_g}, b: {_b}")
 
         self.led_strip.setPixelColor(_led_index, Color(_r, _g, _b))
