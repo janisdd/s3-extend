@@ -44,6 +44,7 @@ def logToFile(message, data=None):
     f.write(message + "\n")
     if data is not None:
         f.write(str(data))
+    f.flush()
 
 
 # see https://www.waveshare.com/wiki/AlphaBot2-Pi --> ws2812.py example
