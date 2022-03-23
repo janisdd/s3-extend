@@ -16,7 +16,8 @@ setup(
         'pymata_rh',
         'pymata-cpx',
         'tmx-pico-aio',
-        'telemetrix-aio>=1.8'
+        'telemetrix-aio>=1.8',
+        'rpi_ws281x'
     ],
 
     entry_points={
