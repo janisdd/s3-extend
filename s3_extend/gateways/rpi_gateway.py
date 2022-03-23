@@ -41,20 +41,23 @@ f = open("/home/pi/rpi_gateway_log.txt", "w")
 
 def logToFile(message, data=None):
     print(message, data)
-    # f.write(message + "\n")
-    # if data is not None:
-    #    f.write(str(data))
+    f.write(message + "\n")
+    if data is not None:
+        f.write(str(data))
+
 
 # see https://www.waveshare.com/wiki/AlphaBot2-Pi --> ws2812.py example
 from rpi_ws281x import Adafruit_NeoPixel, Color
+
 # LED strip configuration:
-LED_COUNT      = 4      # Number of LED pixels.
-LED_PIN        = 18      # GPIO pin connected to the pixels (must support PWM!).
-LED_FREQ_HZ    = 800000  # LED signal frequency in hertz (usually 800khz)
-LED_DMA        = 5       # DMA channel to use for generating signal (try 5)
-LED_BRIGHTNESS = 255     # Set to 0 for darkest and 255 for brightest
-LED_INVERT     = False   # True to invert the signal (when using NPN transistor level shift)
-LED_CHANNEL    = 0
+LED_COUNT = 4  # Number of LED pixels.
+LED_PIN = 18  # GPIO pin connected to the pixels (must support PWM!).
+LED_FREQ_HZ = 800000  # LED signal frequency in hertz (usually 800khz)
+LED_DMA = 5  # DMA channel to use for generating signal (try 5)
+LED_BRIGHTNESS = 255  # Set to 0 for darkest and 255 for brightest
+LED_INVERT = False  # True to invert the signal (when using NPN transistor level shift)
+LED_CHANNEL = 0
+
 
 # noinspection PyAbstractClass
 class RpiGateway(MyGatewayBase):
@@ -117,7 +120,7 @@ class RpiGateway(MyGatewayBase):
             # Intialize the library (must be called once before other functions).
             self.led_strip.begin()
         except Exception as e:
-            logToFile("error rpi_gate 1", traceback.format_exc())
+            logToFile("error could not start led strip", traceback.format_exc())
             self.pi.stop()
             self.clean_up()
             sys.exit(0)
@@ -413,14 +416,27 @@ class RpiGateway(MyGatewayBase):
         """
         This method sets a GPIO pin capable of PWM for PWM operation.
         :param topic: message topic
-        :param payload: {"command": "set_led_color", "r":0-255, "g":0-255, "b":0-255 }
+        :param payload: {"command": "set_led_color", "led":0-3", r":0-255, "g":0-255, "b":0-255 }
         """
+        _led_index = payload['led']
         _r = payload['r']
         _g = payload['r']
         _b = payload['r']
-        self.led_strip.setPixelColor(0, Color(_r, _g, _b))
+        
+        logToFile(f"setting led {_led_index} to r: {_r}, g: {_g}, b: {_b}")
+
+        self.led_strip.setPixelColor(_led_index, Color(_r, _g, _b))
         self.led_strip.show()
-        # self.pi.set_mode(payload['pin'], pigpio.OUTPUT)
+
+    def clear_rgb_led_color(self, topic, payload):
+        """
+        This method sets a GPIO pin capable of PWM for PWM operation.
+        :param topic: message topic
+        :param payload: {"command": "clear_rgb_led_color", "led":0-3", "r":0-255, "g":0-255, "b":0-255 }
+        """
+        _led_index = payload['led']
+        self.led_strip.setPixelColor(_led_index, Color(0, 0, 0))
+        self.led_strip.show()
 
     def set_mode_servo(self, topic, payload):
         """

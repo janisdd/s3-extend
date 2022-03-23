@@ -96,10 +96,10 @@ class MyGatewayBase(BanyanBase):
 
         # initialize the parent
         super(MyGatewayBase, self).__init__(back_plane_ip_address=back_plane_ip_address,
-                                          subscriber_port=subscriber_port,
-                                          publisher_port=publisher_port,
-                                          process_name=process_name,
-                                          )
+                                            subscriber_port=subscriber_port,
+                                            publisher_port=publisher_port,
+                                            process_name=process_name,
+                                            )
 
         self.command_dictionary = {'analog_write': self.analog_write,
                                    'digital_write': self.digital_write,
@@ -119,6 +119,7 @@ class MyGatewayBase(BanyanBase):
                                    'set_mode_digital_input_pull_state': self.set_mode_digital_input_pull_state,
                                    'set_mode_digital_output': self.set_mode_digital_output,
                                    'set_rgb_led_color': self.set_rgb_led_color,
+                                   'clear_rgb_led_color': self.clear_rgb_led_color,
                                    'set_mode_i2c': self.set_mode_i2c,
                                    'set_mode_pwm': self.set_mode_pwm,
                                    'set_mode_servo': self.set_mode_servo,
@@ -340,6 +341,9 @@ class MyGatewayBase(BanyanBase):
         raise NotImplementedError
 
     def set_rgb_led_color(self, topic, payload):
+        raise NotImplementedError
+
+    def clear_rgb_led_color(self, topic, payload):
         raise NotImplementedError
 
     def set_mode_i2c(self, topic, payload):

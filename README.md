@@ -2,7 +2,7 @@
 # How to use
 
 ```
-python3 setup.py install
+sudo python3 setup.py install
 s3r
 ```
 ---
