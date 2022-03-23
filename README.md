@@ -3,7 +3,7 @@
 
 ```
 sudo python3 setup.py install
-s3r
+sudo s3r
 ```
 ---
 
