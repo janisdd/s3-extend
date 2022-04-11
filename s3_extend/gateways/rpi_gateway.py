@@ -472,7 +472,7 @@ class RpiGateway(MyGatewayBase):
         _pulse_needed = _percentage * 2000
         _pulse_needed_right = int(_pulse_needed + 500)
         logToFile(f"setting servo pulse: {_pulse_needed_right}")
-        self.servo_PCA9685.setServoPulse(_pulse_needed)
+        self.servo_PCA9685.setServoPulse(0, _pulse_needed)
 
 
     def set_mode_servo(self, topic, payload):
