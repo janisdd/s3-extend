@@ -727,7 +727,9 @@ class PCA9685:
         pulse = min(2500, pulse)
 
         pulse = pulse * 4096 / 20000  # PWM frequency is 50HZ,the period is 20000us = 20ms
-        self.setPWM(channel, 0, pulse)
+        # works on python2, not python3 because float & int ...
+        _pulse = int(pulse)
+        self.setPWM(channel, 0, _pulse)
 
 
 if __name__ == '__main__':
