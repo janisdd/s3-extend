@@ -365,6 +365,7 @@ class RpiGateway(MyGatewayBase):
         self.pi.set_mode(pin, pigpio.INPUT)
         # self.pi.set_pull_up_down(pin, pigpio.PUD_DOWN) # we added an additional command to control this
 
+        logToFile(f"setting up chang listener for pin {pin}")
         self.pi.callback(pin, pigpio.EITHER_EDGE, self.input_callback)
 
     def set_mode_digital_input_pull_state(self, topic, payload):
