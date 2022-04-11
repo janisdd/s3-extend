@@ -115,7 +115,6 @@ class MyGatewayBase(BanyanBase):
                                    'servo_position': self.servo_position,
                                    'set_mode_analog_input': self.set_mode_analog_input,
                                    'set_mode_digital_input': self.set_mode_digital_input,
-                                   'set_mode_digital_input_pullup': self.set_mode_digital_input_pullup,
                                    'set_mode_digital_input_pull_state': self.set_mode_digital_input_pull_state,
                                    'set_mode_digital_output': self.set_mode_digital_output,
                                    'set_rgb_led_color': self.set_rgb_led_color,
@@ -305,15 +304,6 @@ class MyGatewayBase(BanyanBase):
         raise NotImplementedError
 
     def set_mode_digital_input(self, topic, payload):
-        """
-        This method will pass any messages not handled by this class to the
-        specific gateway class. Must be overwritten by the hardware gateway class.
-        :param topic: message topic
-        :param payload: message payload
-        """
-        raise NotImplementedError
-
-    def set_mode_digital_input_pullup(self, topic, payload):
         """
         This method will pass any messages not handled by this class to the
         specific gateway class. Must be overwritten by the hardware gateway class.
