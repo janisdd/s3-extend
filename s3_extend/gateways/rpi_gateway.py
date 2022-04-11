@@ -447,7 +447,9 @@ class RpiGateway(MyGatewayBase):
         :param topic: message topic
         :param payload: {"command": "read_ir_key"}
         """
+        logToFile(f"IR read start")
         keyNum = self.get_IR_key()
+        logToFile(f"IR read result: {keyNum}")
         payload = {'report': 'ir_key', 'value': keyNum, 'timestamp': time.time()}
         self.publish_payload(payload, 'from_rpi_gateway')
 
