@@ -471,7 +471,6 @@ class RpiGateway(MyGatewayBase):
         _percentage = _degree / 180
         _pulse_needed = _percentage * 2000
         _pulse_needed_right = int(_pulse_needed + 500)
-        logToFile(f"setting servo pulse: {_pulse_needed_right}")
         self.servo_PCA9685.setServoPulse(0, _pulse_needed)
 
 
@@ -725,6 +724,7 @@ class PCA9685:
 
         pulse = max(500, pulse)
         pulse = min(2500, pulse)
+        logToFile(f"setting servo pulse: {pulse}")
 
         pulse = pulse * 4096 / 20000  # PWM frequency is 50HZ,the period is 20000us = 20ms
         # works on python2, not python3 because float & int ...
