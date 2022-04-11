@@ -384,12 +384,12 @@ class RpiGateway(MyGatewayBase):
 
         logToFile(f"setting pin {pin} to pull state {payload['pull_state']}")
 
-        if payload['pull_state'] == 'pull_up':
-            entry['pull_state'] = 'pull_none'
+        if payload['pull_state'] == 'pull_high':
+            entry['pull_state'] = 'pull_high'
             self.pi.set_pull_up_down(pin, pigpio.PUD_UP)
 
-        elif payload['pull_state'] == 'pull_down':
-            entry['pull_state'] = 'pull_down'
+        elif payload['pull_state'] == 'pull_low':
+            entry['pull_state'] = 'pull_low'
             self.pi.set_pull_up_down(pin, pigpio.PUD_DOWN)
 
         else:
