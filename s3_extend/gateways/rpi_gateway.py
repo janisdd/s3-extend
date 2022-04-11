@@ -377,10 +377,10 @@ class RpiGateway(MyGatewayBase):
         entry = self.pins_dictionary[pin]
 
         # TODO set mode input?
-        # entry['mode'] = self.DIGITAL_INPUT_MODE
+        entry['mode'] = self.DIGITAL_INPUT_MODE
 
-        # self.pi.set_glitch_filter(pin, 20000)
-        # self.pi.set_mode(pin, pigpio.INPUT)
+        self.pi.set_glitch_filter(pin, 20000)
+        self.pi.set_mode(pin, pigpio.INPUT)
 
         logToFile(f"setting pin {pin} to pull state {payload['pull_state']}")
 
