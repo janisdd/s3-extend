@@ -68,7 +68,7 @@ class S3R:
         # start rpi gateway
         self.proc_hwg = self.start_rpigw()
         if self.proc_hwg:
-            print('RPi Gateway started (test)')
+            print('RPi Gateway started (test2)')
             print('To exit this program, press Control-c')
 
         else:
