@@ -119,6 +119,7 @@ class MyGatewayBase(BanyanBase):
                                    'set_mode_digital_output': self.set_mode_digital_output,
                                    'set_rgb_led_color': self.set_rgb_led_color,
                                    'clear_rgb_led_color': self.clear_rgb_led_color,
+                                   'read_ir_key': self.read_ir_key,
                                    'set_mode_i2c': self.set_mode_i2c,
                                    'set_mode_pwm': self.set_mode_pwm,
                                    'set_mode_servo': self.set_mode_servo,
@@ -335,6 +336,10 @@ class MyGatewayBase(BanyanBase):
 
     def clear_rgb_led_color(self, topic, payload):
         raise NotImplementedError
+
+    def read_ir_key(self, topic, payload):
+        raise NotImplementedError
+
 
     def set_mode_i2c(self, topic, payload):
         """

@@ -441,6 +441,16 @@ class RpiGateway(MyGatewayBase):
         self.led_strip.setPixelColor(_led_index, Color(0, 0, 0))
         self.led_strip.show()
 
+    def read_ir_key(self, topic, payload):
+        """
+        This method reads the current pressed IR key
+        :param topic: message topic
+        :param payload: {"command": "read_ir_key"}
+        """
+        keyNum = get_IR_key()
+        payload = {'report': 'ir_key', 'value': keyNum, 'timestamp': time.time()}
+        self.publish_payload(payload, 'from_rpi_gateway')
+
     def set_mode_servo(self, topic, payload):
         """
         This method establishes a GPIO pin for servo operation.
@@ -560,6 +570,49 @@ def signal_handler(sig, frame):
     logToFile('Exiting Through Signal Handler')
     raise KeyboardInterrupt
 
+
+def get_IR_key():
+    IR = 17
+    if pigpio.read(IR) == 0:
+        count = 0
+        while pigpio.read(IR) == 0 and count < 200:  # 9ms
+            count += 1
+            time.sleep(0.00006)
+        if (count < 10):
+            return;
+        count = 0
+        while pigpio.read(IR) == 1 and count < 80:  # 4.5ms
+            count += 1
+            time.sleep(0.00006)
+
+        idx = 0
+        cnt = 0
+        data = [0, 0, 0, 0]
+        for i in range(0, 32):
+            count = 0
+            while pigpio.read(IR) == 0 and count < 15:  # 0.56ms
+                count += 1
+                time.sleep(0.00006)
+
+            count = 0
+            while pigpio.read(IR) == 1 and count < 40:  # 0: 0.56mx
+                count += 1  # 1: 1.69ms
+                time.sleep(0.00006)
+
+            if count > 7:
+                data[idx] |= 1 << cnt
+            if cnt == 7:
+                cnt = 0
+                idx += 1
+            else:
+                cnt += 1
+        #		print data
+        if data[0] + data[1] == 0xFF and data[2] + data[3] == 0xFF:  # check
+            logToFile(f"IR read: {data[2]}")
+            return data[2]
+        else:
+            logToFile(f"IR invalid read, setting to -1")
+            return -1
 
 # listen for SIGINT
 signal.signal(signal.SIGINT, signal_handler)
