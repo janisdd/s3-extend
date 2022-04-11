@@ -447,17 +447,18 @@ class RpiGateway(MyGatewayBase):
         self.led_strip.setPixelColor(_led_index, Color(0, 0, 0))
         self.led_strip.show()
 
-    def read_ir_key(self, topic, payload):
-        """
-        This method reads the current pressed IR key
-        :param topic: message topic
-        :param payload: {"command": "read_ir_key"}
-        """
-        logToFile(f"IR read start")
-        keyNum = self.get_IR_key()
-        logToFile(f"IR read result: {keyNum}")
-        payload = {'report': 'ir_key', 'value': keyNum, 'timestamp': time.time()}
-        self.publish_payload(payload, 'from_rpi_gateway')
+    # not working
+    # def read_ir_key(self, topic, payload):
+    #     """
+    #     This method reads the current pressed IR key
+    #     :param topic: message topic
+    #     :param payload: {"command": "read_ir_key"}
+    #     """
+    #     logToFile(f"IR read start")
+    #     keyNum = self.get_IR_key()
+    #     logToFile(f"IR read result: {keyNum}")
+    #     payload = {'report': 'ir_key', 'value': keyNum, 'timestamp': time.time()}
+    #     self.publish_payload(payload, 'from_rpi_gateway')
 
     def set_PCA9685_servo_degree(self, topic, payload):
         """
@@ -469,9 +470,9 @@ class RpiGateway(MyGatewayBase):
         # scale 0-180 to 500-2500
         _percentage = _degree / 180
         _pulse_needed = _percentage * 2000
-        _pulse_needed_right = _pulse_needed + 500
+        _pulse_needed_right = int(_pulse_needed + 500)
         logToFile(f"setting servo pulse: {_pulse_needed_right}")
-        # self.servo_PCA9685.setServoPulse(_pulse_needed)
+        self.servo_PCA9685.setServoPulse(_pulse_needed)
 
 
     def set_mode_servo(self, topic, payload):
