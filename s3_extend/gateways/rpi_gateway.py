@@ -447,7 +447,7 @@ class RpiGateway(MyGatewayBase):
         :param topic: message topic
         :param payload: {"command": "read_ir_key"}
         """
-        keyNum = get_IR_key()
+        keyNum = self.get_IR_key()
         payload = {'report': 'ir_key', 'value': keyNum, 'timestamp': time.time()}
         self.publish_payload(payload, 'from_rpi_gateway')
 
@@ -553,7 +553,7 @@ class RpiGateway(MyGatewayBase):
                 while self.pi.read(IR) == 0 and count < 15:  # 0.56ms
                     count += 1
                     time.sleep(0.00006)
-    
+
                 count = 0
                 while self.pi.read(IR) == 1 and count < 40:  # 0: 0.56mx
                     count += 1  # 1: 1.69ms
